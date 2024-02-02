@@ -52,3 +52,7 @@
 .weather-no-data {
   margin-top: 50px;
 }
+
+.cache-info {
+  color: #28a745;
+}
