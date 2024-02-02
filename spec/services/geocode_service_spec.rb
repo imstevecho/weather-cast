@@ -19,7 +19,7 @@ RSpec.describe GeocodeService do
     end
 
     it 'fetches the geolocation using address' do
-      result = service.address(address)
+      result = service.coords_by_address(address)
 
       expect(HTTParty).to have_received(:get).with(
         'https://maps.googleapis.com/maps/api/geocode/json',
@@ -33,7 +33,7 @@ RSpec.describe GeocodeService do
     end
 
     it 'fetches the geolocation using address' do
-      result = service.address(zipcode)
+      result = service.coords_by_address(zipcode)
 
       expect(HTTParty).to have_received(:get).with(
         'https://maps.googleapis.com/maps/api/geocode/json',
@@ -58,12 +58,12 @@ RSpec.describe GeocodeService do
 
     it 'uses caching when skip_cache is false' do
       expect(Rails.cache).to receive(:fetch).with(cache_key, expires_in: 1.month).and_call_original
-      service.address(address)
+      service.coords_by_address(address)
       expect(Rails.cache.exist?(cache_key)).to be true
     end
 
     it 'bypasses caching when skip_cache is true' do
-      service.address(address, skip_cache: true)
+      service.coords_by_address(address, skip_cache: true)
       expect(Rails.cache.exist?(cache_key)).to be false
     end
   end

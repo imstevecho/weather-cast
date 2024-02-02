@@ -1,0 +1,36 @@
+<h1>Your Local Weather Forecast</h1>
+<%= form_with url: weathers_index_path, method: :get, local: true do %>
+  <div class="form-group">
+    <input type="text" name="q" id="q" class="form-control" placeholder="Enter Your Address or ZIP Code for a Custom Forecast">
+  </div>
+  <button type="submit" class="btn btn-primary">Get My Forecast</button>
+<% end %>
+
+<% if @forecast_data.present? %>
+  <h3>Here's the Weather Forecast for <%= params[:q] %>(zip code: <%= @zip %>)</h3>
+  <div class="weather-table">
+    <% if @is_from_cache %>
+      <span class="cache-info">Note: This forecast data is cached and may not reflect real-time conditions.</span>
+    <% end %>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Temperature (°F)</th>
+          <th>High (°F)</th>
+          <th>Low (°F)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @forecast_data.each do |day| %>
+          <tr>
+            <td><%= human_readable_time(day[:date]) %><%= ' (Today)' if is_today?(day[:date]) %></td>
+            <td><%= day[:temp] %></td>
+            <td><%= day[:temp_max] %></td>
+            <td><%= day[:temp_min] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
