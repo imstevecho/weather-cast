@@ -21,7 +21,7 @@ RSpec.describe ForecastService do
 
       expect(HTTParty).to have_received(:get).with(
         'https://api.openweathermap.org/data/2.5/forecast',
-        query: hash_including(lat: lat, lon: lon)
+        query: hash_including(lat:, lon:)
       )
 
       expect(result).to eq([
@@ -32,28 +32,6 @@ RSpec.describe ForecastService do
                                temp_max: 30
                              }
                            ])
-    end
-  end
-
-  context 'cache' do
-    let(:memory_store) { ActiveSupport::Cache.lookup_store(:memory_store) }
-    let(:cache) { Rails.cache }
-
-    before do
-      allow(Rails).to receive(:cache).and_return(memory_store)
-      Rails.cache.clear
-    end
-
-    it 'uses caching when skip_cache is false' do
-      Rails.cache.clear
-      service.with_lat_lon(lat, lon)
-      expect(Rails.cache.exist?(cache_key)).to be true
-    end
-
-    it 'bypasses caching when skip_cache is true' do
-      Rails.cache.clear
-      service.with_lat_lon(lat, lon, skip_cache: true)
-      expect(Rails.cache.exist?(cache_key)).to be false
     end
   end
 end

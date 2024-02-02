@@ -3,16 +3,14 @@ class CachingService
   DEFAULT_EXPIRATION = 1.hour.freeze
 
   class << self
-    # Fetch data from cache or execute block if data is not cached or caching is skipped.
-    #
-    # @param key [String] Cache key
-    # @param expires_in [ActiveSupport::Duration] Cache expiration time
-    # @param skip_cache [Boolean] Flag to skip caching
-    # @return [Object] Cached or freshly generated data
-    def fetch(key, expires_in: DEFAULT_EXPIRATION, skip_cache: false, &block)
-      return yield if skip_cache
-
-      Rails.cache.fetch(key, expires_in: expires_in, &block)
+    def fetch(key, expires_in: 1.hour, skip_cache: false)
+      if !skip_cache && Rails.cache.exist?(key)
+        {data: Rails.cache.read(key), is_from_cache: true}
+      else
+        yield_result = yield
+        Rails.cache.write(key, yield_result, expires_in: expires_in)
+        {data: yield_result, is_from_cache: false}
+      end
     end
   end
 end

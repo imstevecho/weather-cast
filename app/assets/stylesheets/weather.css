@@ -5,7 +5,7 @@
 
 .form-control {
   padding: 10px;
-  width: 300px;
+  width: 350px;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
@@ -43,4 +43,12 @@
 
 .weather-form {
   width: 300px;
+}
+
+.weather-table {
+  margin-top: 50px;
+}
+
+.weather-no-data {
+  margin-top: 50px;
 }
