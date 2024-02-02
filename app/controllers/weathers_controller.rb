@@ -26,13 +26,12 @@ class WeathersController < ApplicationController
   end
 
   def handle_weather_result(result)
-    if result
-      @forecast_data = result[:forecast_data]
-      @is_from_cache = result[:is_from_cache]
-      @zip = result[:zip]
-    else
-      flash[:error] = 'Could not fetch weather data.'
-      redirect_to root_path
+    unless result
+      raise StandardError.new('Could not fetch weather data.')
     end
+
+    @forecast_data = result[:forecast_data]
+    @is_from_cache = result[:is_from_cache]
+    @zip = result[:zip]
   end
 end

@@ -1,4 +1,13 @@
 <h1>Your Local Weather Forecast</h1>
+
+<% if flash[:error].present? %>
+  <div class="alert alert-danger">
+    <%= flash[:error] %>
+  </div>
+<% end %>
+
+<br/>
+
 <%= form_with url: weathers_index_path, method: :get, local: true do %>
   <div class="form-group">
     <input type="text" name="q" id="q" class="form-control" placeholder="Enter Your Address or ZIP Code for a Custom Forecast" value="<%= params[:q] %>">
@@ -8,7 +17,7 @@
 
 <% if @forecast_data.present? %>
   <div class="weather-table">
-    <h3>Here is 3 hour forecast for <%= params[:q] %>(zip code: <%= @zip %>)</h3>
+    <h3>Here is the 3-hour forecast for <%= params[:q] %> (zip code: <%= @zip %>)</h3>
     <% if @is_from_cache %>
       <span class="cache-info">Note: This forecast data is cached and may not reflect real-time conditions.</span>
     <% end %>
