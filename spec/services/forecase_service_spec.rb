@@ -1,9 +1,10 @@
 require 'rails_helper'
 
-RSpec.describe OpenWeatherMap::ForecastService do
+RSpec.describe ForecastService do
   let(:service) { described_class.new }
   let(:lat) { 43.8986416 }
   let(:lon) { -79.4509662 }
+  let(:cache_key) { "forecast_#{lat}_#{lon}" }
 
   let(:fake_http_response) do
     instance_double(HTTParty::Response,
@@ -31,6 +32,28 @@ RSpec.describe OpenWeatherMap::ForecastService do
                                temp_max: 30
                              }
                            ])
+    end
+  end
+
+  context 'cache' do
+    let(:memory_store) { ActiveSupport::Cache.lookup_store(:memory_store) }
+    let(:cache) { Rails.cache }
+
+    before do
+      allow(Rails).to receive(:cache).and_return(memory_store)
+      Rails.cache.clear
+    end
+
+    it 'uses caching when skip_cache is false' do
+      Rails.cache.clear
+      service.with_lat_lon(lat, lon)
+      expect(Rails.cache.exist?(cache_key)).to be true
+    end
+
+    it 'bypasses caching when skip_cache is true' do
+      Rails.cache.clear
+      service.with_lat_lon(lat, lon, skip_cache: true)
+      expect(Rails.cache.exist?(cache_key)).to be false
     end
   end
 end
