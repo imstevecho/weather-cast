@@ -19,7 +19,7 @@ class WeatherService
     weather = CachingService.fetch(key, expires_in: CACHE_EXPIRATION) do
       Rails.logger.info "Fetching weather for ZIP #{location_info[:zip]}"
       @forecast_service.with_lat_lon(location_info[:lat], location_info[:lon])
-    end    
+    end
 
     { is_from_cache: weather[:is_from_cache], forecast_data: weather[:data], zip: location_info[:zip] }
   rescue StandardError => e
