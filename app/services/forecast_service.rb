@@ -1,11 +1,15 @@
+# frozen_string_literal: true
+
 class ForecastService
+  class ForecastError < StandardError; end
+
   BASE_URL = 'https://api.openweathermap.org/data/2.5'.freeze
 
   def initialize
     @options = {
-      id: ENV['OPENWEATHER_API_ID'],
-      appid: ENV['OPENWEATHER_API_KEY'],
-      units: ENV['OPENWEATHER_UNITS']
+      id: ENV.fetch('OPENWEATHER_API_ID', nil),
+      appid: ENV.fetch('OPENWEATHER_API_KEY'),
+      units: ENV.fetch('OPENWEATHER_UNITS', 'metric')
     }
   end
 
@@ -15,8 +19,7 @@ class ForecastService
     parsed_response = fetch('/forecast', { lat: lat, lon: lon })
     parse_forecast(parsed_response['list'])
   rescue StandardError => e
-    Rails.logger.error "Failed to fetch forecast: #{e.message}"
-    raise
+    handle_error("Failed to fetch forecast: #{e.message}")
   end
 
   private
@@ -25,22 +28,31 @@ class ForecastService
   def fetch(path, query = {})
     full_query = query.merge(@options)
     url = "#{BASE_URL}#{path}"
-    response = HTTParty.get(url, { query: full_query })
+    response = HTTParty.get(url, query: full_query)
 
-    JSON.parse(response.body).tap do |_parsed_response|
-      raise 'API Error' unless response.success?
-    end
+    raise ForecastError, 'API request failed' unless response.success?
+
+    JSON.parse(response.body)
+  rescue HTTParty::Error, JSON::ParserError => e
+    handle_error("API request or parsing failed: #{e.message}")
   end
 
   # Parse the forecast data from API response
   def parse_forecast(list)
     list.map do |forecast|
       {
-        date: forecast['dt'],
-        temp: forecast['main']['temp'],
-        temp_min: forecast['main']['temp_min'],
-        temp_max: forecast['main']['temp_max']
+        date: Time.at(forecast['dt']).utc,
+        temp: forecast.dig('main', 'temp'),
+        temp_min: forecast.dig('main', 'temp_min'),
+        temp_max: forecast.dig('main', 'temp_max'),
+        description: forecast.dig('weather', 0, 'description'),
+        icon: forecast.dig('weather', 0, 'icon')
       }
     end
+  end
+
+  def handle_error(message)
+    Rails.logger.error(message)
+    raise ForecastError, message
   end
 end

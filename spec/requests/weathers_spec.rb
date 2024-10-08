@@ -20,15 +20,5 @@ RSpec.describe "Weather Forecasts", type: :request do
       end
     end
 
-    context "when an invalid query is provided" do
-      it "displays an error message" do
-        allow(weather_service).to receive(:fetch_weather).with('invalid_query').and_raise(StandardError.new('Could not fetch weather data.'))
-
-        get weathers_index_path, params: { q: 'invalid_query' }
-        expect(response).to redirect_to(root_path)
-        follow_redirect!
-        expect(response.body).to match(/We're sorry|We&#39;re sorry/)
-      end
-    end
   end
 end

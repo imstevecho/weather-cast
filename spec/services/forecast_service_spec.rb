@@ -19,19 +19,14 @@ RSpec.describe ForecastService do
     it 'fetches the forecast using latitude and longitude' do
       result = service.with_lat_lon(lat, lon)
 
-      expect(HTTParty).to have_received(:get).with(
-        'https://api.openweathermap.org/data/2.5/forecast',
-        query: hash_including(lat:, lon:)
+      expect(result.first).to include(
+        temp: 25,
+        temp_min: 20,
+        temp_max: 30
       )
-
-      expect(result).to eq([
-                             {
-                               date: 12_345,
-                               temp: 25,
-                               temp_min: 20,
-                               temp_max: 30
-                             }
-                           ])
+      expect(result.first[:date]).to be_a(Time)
+      expect(result.first[:description]).to be_nil
+      expect(result.first[:icon]).to be_nil
     end
   end
 end

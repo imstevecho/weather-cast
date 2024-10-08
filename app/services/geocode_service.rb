@@ -1,63 +1,69 @@
-class GeocodeService
-  include CacheKeyGenerator
-  BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'.freeze
-  CACHE_EXPIRATION = 1.month.freeze
+# frozen_string_literal: true
 
-  # Fetch coordinates by address
+class GeocodeService
+  class GeocodingError < StandardError; end
+
+  include CacheKeyGenerator
+
+  BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
+  CACHE_EXPIRATION = 1.month
+
   def coords_by_address(address, skip_cache: false)
-    fetch_geo_info('geocode', address, skip_cache: skip_cache)
-  rescue StandardError => e
-    Rails.logger.error "Error fetching coordinates by address: #{e.message}"
-    nil
+    fetch_geo_info('address', address, skip_cache: skip_cache)
   end
 
-  # Fetch coordinates by zipcode
   def coords_by_zipcode(zipcode, country_code = 'US', skip_cache: false)
     query = "#{zipcode},#{country_code}"
-    fetch_geo_info('geocode', query, skip_cache: skip_cache)
-  rescue StandardError => e
-    Rails.logger.error "Error fetching coordinates by zipcode: #{e.message}"
-    nil
+    fetch_geo_info('zipcode', query, skip_cache: skip_cache)
   end
 
   private
 
-  # General method to fetch geographic information
   def fetch_geo_info(prefix, query, skip_cache: false)
     key = cache_key(prefix, query)
     CachingService.fetch(key, expires_in: CACHE_EXPIRATION, skip_cache: skip_cache) do
       Rails.logger.info "Fetching geocode for #{query}"
-      parsed_response = fetch(query)
+      parsed_response = fetch_from_api(query)
       extract_location_info(parsed_response)
     end
   rescue StandardError => e
-    Rails.logger.error "Error in fetch_geo_info: #{e.message}"
-    raise
+    handle_error("Error in fetch_geo_info: #{e.message}")
   end
 
-  # Make API request and parse JSON response
-  def fetch(address)
-    query = {
-      address: address,
-      key: ENV['GOOGLE_MAPS_API_KEY']
-    }
-    response = HTTParty.get(BASE_URL, { query: query })
-    raise 'API Error' unless response.success?
+  def fetch_from_api(address)
+    response = HTTParty.get(BASE_URL, query: api_query(address))
+    raise GeocodingError, 'API request failed' unless response.success?
 
     JSON.parse(response.body)
   rescue HTTParty::Error, JSON::ParserError => e
-    Rails.logger.error "API request or parsing failed: #{e.message}"
-    raise
+    handle_error("API request or parsing failed: #{e.message}")
   end
 
-  # Extract latitude, longitude, and zip code from parsed response
-  def extract_location_info(parsed_response)
-    lat = parsed_response.dig('results', 0, 'geometry', 'location', 'lat')
-    lon = parsed_response.dig('results', 0, 'geometry', 'location', 'lng')
-    zip = parsed_response.dig('results', 0, 'address_components').find do |comp|
-            comp['types'].include?('postal_code')
-          end&.dig('short_name')
+  def api_query(address)
+    {
+      address: address,
+      key: ENV.fetch('GOOGLE_MAPS_API_KEY')
+    }
+  end
 
-    { lat: lat, lon: lon, zip: zip }
+  def extract_location_info(parsed_response)
+    result = parsed_response['results'].first
+    raise GeocodingError, 'No results found' if result.nil?
+
+    {
+      lat: result.dig('geometry', 'location', 'lat'),
+      lon: result.dig('geometry', 'location', 'lng'),
+      zip: find_zip_code(result['address_components'])
+    }
+  end
+
+  def find_zip_code(address_components)
+    zip_component = address_components.find { |comp| comp['types'].include?('postal_code') }
+    zip_component&.dig('short_name')
+  end
+
+  def handle_error(message)
+    Rails.logger.error(message)
+    raise GeocodingError, message
   end
 end
