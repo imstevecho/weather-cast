@@ -8,7 +8,7 @@
 
 <br/>
 
-<%= form_with url: weathers_index_path, method: :get, local: true do %>
+<%= form_with url: weathers_path, method: :get, local: true do %>
   <div class="form-group">
     <input type="text" name="q" id="q" class="form-control" placeholder="Enter Your Address or ZIP Code for a Custom Forecast" value="<%= params[:q] %>">
   </div>
