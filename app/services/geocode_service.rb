@@ -13,7 +13,7 @@ class GeocodeService
   MAX_RETRIES = 3
 
   def coords_by_address(address, skip_cache: false)
-    fetch_geo_info('address', address, skip_cache: skip_cache)
+    fetch_geo_info('address', address, address, skip_cache: skip_cache)
   end
 
   def coords_by_zipcode(zipcode, country_code = 'US', skip_cache: false)
@@ -28,9 +28,7 @@ class GeocodeService
 
   def fetch_geo_info(prefix, key, query, skip_cache: false)
     cache_key = cache_key(prefix, key)
-    Rails.logger.info "GeocodeService: Cache key: #{cache_key}"
     CachingService.fetch(cache_key, expires_in: CACHE_EXPIRATION, skip_cache: skip_cache) do
-      Rails.logger.info "GeocodeService: Cache miss, fetching from API for #{query}"
       with_retries(max_retries: MAX_RETRIES) { geocode(query) }
     end
   rescue StandardError => e

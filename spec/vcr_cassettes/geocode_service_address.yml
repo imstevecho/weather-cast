@@ -1,0 +1,96 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://maps.googleapis.com/maps/api/geocode/json?address=1600%20Amphitheatre%20Parkway,%20Mountain%20View,%20CA&key=AIzaSyDG-FrpSf88xFZVrs-c0zhEHosvDEvqUXc
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 09 Oct 2024 02:53:29 GMT
+      Pragma:
+      - no-cache
+      Expires:
+      - Fri, 01 Jan 1990 00:00:00 GMT
+      Cache-Control:
+      - no-cache, must-revalidate
+      Vary:
+      - Accept-Language
+      Access-Control-Allow-Origin:
+      - "*"
+      X-Goog-Maps-Metro-Area:
+      - San Jose, CA
+      Content-Security-Policy-Report-Only:
+      - script-src 'none'; form-action 'none'; frame-src 'none'; report-uri https://csp.withgoogle.com/csp/scaffolding/msaifdggmnwc:229:0
+      Cross-Origin-Opener-Policy-Report-Only:
+      - same-origin; report-to=coop_reporting
+      Report-To:
+      - '{"group":"coop_reporting","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/scaffolding/msaifdggmnwc:229:0"}],}'
+      Server:
+      - mafe
+      Content-Length:
+      - '2849'
+      X-Xss-Protection:
+      - '0'
+      X-Frame-Options:
+      - SAMEORIGIN
+      Server-Timing:
+      - gfet4t7; dur=56
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: "{\n   \"results\" : \n   [\n      {\n         \"address_components\"
+        : \n         [\n            {\n               \"long_name\" : \"1600\",\n
+        \              \"short_name\" : \"1600\",\n               \"types\" : \n               [\n
+        \                 \"street_number\"\n               ]\n            },\n            {\n
+        \              \"long_name\" : \"Amphitheatre Parkway\",\n               \"short_name\"
+        : \"Amphitheatre Pkwy\",\n               \"types\" : \n               [\n
+        \                 \"route\"\n               ]\n            },\n            {\n
+        \              \"long_name\" : \"Mountain View\",\n               \"short_name\"
+        : \"Mountain View\",\n               \"types\" : \n               [\n                  \"locality\",\n
+        \                 \"political\"\n               ]\n            },\n            {\n
+        \              \"long_name\" : \"Santa Clara County\",\n               \"short_name\"
+        : \"Santa Clara County\",\n               \"types\" : \n               [\n
+        \                 \"administrative_area_level_2\",\n                  \"political\"\n
+        \              ]\n            },\n            {\n               \"long_name\"
+        : \"California\",\n               \"short_name\" : \"CA\",\n               \"types\"
+        : \n               [\n                  \"administrative_area_level_1\",\n
+        \                 \"political\"\n               ]\n            },\n            {\n
+        \              \"long_name\" : \"United States\",\n               \"short_name\"
+        : \"US\",\n               \"types\" : \n               [\n                  \"country\",\n
+        \                 \"political\"\n               ]\n            },\n            {\n
+        \              \"long_name\" : \"94043\",\n               \"short_name\" :
+        \"94043\",\n               \"types\" : \n               [\n                  \"postal_code\"\n
+        \              ]\n            },\n            {\n               \"long_name\"
+        : \"1351\",\n               \"short_name\" : \"1351\",\n               \"types\"
+        : \n               [\n                  \"postal_code_suffix\"\n               ]\n
+        \           }\n         ],\n         \"formatted_address\" : \"1600 Amphitheatre
+        Pkwy, Mountain View, CA 94043, USA\",\n         \"geometry\" : \n         {\n
+        \           \"location\" : \n            {\n               \"lat\" : 37.4214795,\n
+        \              \"lng\" : -122.0843013\n            },\n            \"location_type\"
+        : \"ROOFTOP\",\n            \"viewport\" : \n            {\n               \"northeast\"
+        : \n               {\n                  \"lat\" : 37.4214795,\n                  \"lng\"
+        : -122.0834892697085\n               },\n               \"southwest\" : \n
+        \              {\n                  \"lat\" : 37.4170393,\n                  \"lng\"
+        : -122.0861872302915\n               }\n            }\n         },\n         \"place_id\"
+        : \"ChIJF4Yf2Ry7j4AR__1AkytDyAE\",\n         \"plus_code\" : \n         {\n
+        \           \"compound_code\" : \"CWC8+J5 Mountain View, CA\",\n            \"global_code\"
+        : \"849VCWC8+J5\"\n         },\n         \"types\" : \n         [\n            \"street_address\"\n
+        \        ]\n      }\n   ],\n   \"status\" : \"OK\"\n}"
+  recorded_at: Wed, 09 Oct 2024 02:53:29 GMT
+recorded_with: VCR 6.3.1

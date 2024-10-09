@@ -7,9 +7,10 @@ class ForecastService
   MAX_RETRIES = 3
 
   def initialize(country_code = 'US')
+    @api_key = ENV['OPENWEATHER_API_KEY']
     @options = {
       id: ENV.fetch('OPENWEATHER_API_ID', nil),
-      appid: ENV.fetch('OPENWEATHER_API_KEY'),
+      appid: @api_key,
       units: country_code == 'CA' ? 'metric' : 'imperial'
     }
   end

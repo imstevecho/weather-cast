@@ -70,8 +70,19 @@ RSpec.configure do |config|
 end
 
 require 'vcr'
+require 'webmock/rspec'
 
+# Add this configuration block
 VCR.configure do |config|
-  config.cassette_library_dir = 'spec/vcr_cassettes'
+  config.cassette_library_dir = "spec/vcr_cassettes"
   config.hook_into :webmock
+  config.configure_rspec_metadata!
+  config.allow_http_connections_when_no_cassette = false
+  config.default_cassette_options = {
+    record: :new_episodes,
+    match_requests_on: [:method, :host, :path]
+  }
+  # If you're using any API keys, you should filter them out here
+  config.filter_sensitive_data('<GOOGLE_API_KEY>') { ENV['GOOGLE_API_KEY'] }
+  config.filter_sensitive_data('<OPENWEATHER_API_KEY>') { ENV['OPENWEATHER_API_KEY'] }
 end
