@@ -64,4 +64,53 @@ RSpec.describe GeocodeService do
       service.send(:fetch_geo_info, 'prefix', 'query')
     end
   end
+
+  describe '#fetch_geo_info with retries' do
+    let(:cache_key) { 'test_cache_key' }
+    let(:geocode_result) { { lat: 40.7128, lon: -74.0060 } }
+
+    before do
+      allow(service).to receive(:cache_key).and_return(cache_key)
+      allow(CachingService).to receive(:fetch).and_yield
+      # Stub out sleep to speed up tests
+      allow(service).to receive(:sleep)
+    end
+
+    it 'retries up to MAX_RETRIES times on failure' do
+      error = StandardError.new("API Error")
+      call_count = 0
+
+      allow(service).to receive(:geocode) do
+        call_count += 1
+        raise error if call_count < GeocodeService::MAX_RETRIES
+        geocode_result
+      end
+
+      result = service.send(:fetch_geo_info, 'prefix', 'query')
+
+      expect(call_count).to eq(GeocodeService::MAX_RETRIES)
+      expect(result).to eq(geocode_result)
+      expect(service).to have_received(:sleep).exactly(GeocodeService::MAX_RETRIES - 1).times
+    end
+
+    it 'raises an error if all retries fail' do
+      allow(service).to receive(:geocode).and_raise(StandardError.new("API Error"))
+
+      expect {
+        service.send(:fetch_geo_info, 'prefix', 'query')
+      }.to raise_error(GeocodeService::GeocodingError, /Error in fetch_geo_info: API Error/)
+
+      expect(service).to have_received(:sleep).exactly(GeocodeService::MAX_RETRIES - 1).times
+    end
+
+    it 'does not retry or sleep on success' do
+      allow(service).to receive(:geocode).and_return(geocode_result)
+
+      result = service.send(:fetch_geo_info, 'prefix', 'query')
+
+      expect(service).to have_received(:geocode).once
+      expect(service).not_to have_received(:sleep)
+      expect(result).to eq(geocode_result)
+    end
+  end
 end
