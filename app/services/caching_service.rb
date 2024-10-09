@@ -3,9 +3,10 @@ class CachingService
   DEFAULT_EXPIRATION = 1.hour.freeze
 
   class << self
-    def fetch(key, expires_in: 1.hour, skip_cache: false)
+    def fetch(key, expires_in: DEFAULT_EXPIRATION, skip_cache: false)
       if !skip_cache && Rails.cache.exist?(key)
-        {data: Rails.cache.read(key), is_from_cache: true}
+        cached_value = Rails.cache.read(key)
+        {data: cached_value, is_from_cache: true}
       else
         yield_result = yield
         Rails.cache.write(key, yield_result, expires_in: expires_in)

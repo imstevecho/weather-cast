@@ -14,13 +14,13 @@ class GeocodeService
 
   def coords_by_zipcode(zipcode, country_code = 'US', skip_cache: false)
     query = "#{zipcode},#{country_code}"
-    fetch_geo_info('zipcode', query, skip_cache: skip_cache)
+    fetch_geo_info('zipcode', zipcode, query, skip_cache: skip_cache)
   end
 
   private
 
-  def fetch_geo_info(prefix, query, skip_cache: false)
-    key = cache_key(prefix, query)
+  def fetch_geo_info(prefix, zipcpde, query, skip_cache: false)
+    key = cache_key(prefix, zipcpde)
     CachingService.fetch(key, expires_in: CACHE_EXPIRATION, skip_cache: skip_cache) do
       Rails.logger.info "Fetching geocode for #{query}"
       parsed_response = fetch_from_api(query)
