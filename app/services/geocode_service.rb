@@ -4,30 +4,37 @@ class GeocodeService
   class GeocodingError < StandardError; end
 
   include CacheKeyGenerator
+  include Retryable
 
   BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
   CACHE_EXPIRATION = 1.month
+  MAX_RETRIES = 3
 
   def coords_by_address(address, skip_cache: false)
     fetch_geo_info('address', address, skip_cache: skip_cache)
   end
 
   def coords_by_zipcode(zipcode, country_code = 'US', skip_cache: false)
-    query = "#{zipcode},#{country_code}"
-    fetch_geo_info('zipcode', zipcode, query, skip_cache: skip_cache)
+    fetch_geo_info('zipcode', zipcode, skip_cache: skip_cache)
   end
 
   private
 
-  def fetch_geo_info(prefix, zipcpde, query, skip_cache: false)
-    key = cache_key(prefix, zipcpde)
+  def fetch_geo_info(prefix, query, skip_cache: false)
+    key = cache_key(prefix, query)
     CachingService.fetch(key, expires_in: CACHE_EXPIRATION, skip_cache: skip_cache) do
-      Rails.logger.info "Fetching geocode for #{query}"
-      parsed_response = fetch_from_api(query)
-      extract_location_info(parsed_response)
+      with_retries(max_retries: MAX_RETRIES) { geocode(query) }
     end
   rescue StandardError => e
     handle_error("Error in fetch_geo_info: #{e.message}")
+  end
+
+  def geocode(query)
+    Rails.logger.info "GeocodeService: Geocoding #{query}"
+    parsed_response = fetch_from_api(query)
+    result = extract_location_info(parsed_response)
+    Rails.logger.info "GeocodeService: Geocoding result for #{query}: #{result.inspect}"
+    result
   end
 
   def fetch_from_api(address)

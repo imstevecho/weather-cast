@@ -1,0 +1,18 @@
+{
+  "list": [
+    {
+      "dt": 1618317040,
+      "main": {
+        "temp": 284.07,
+        "temp_min": 282.84,
+        "temp_max": 284.26
+      },
+      "weather": [
+        {
+          "description": "clear sky",
+          "icon": "01d"
+        }
+      ]
+    }
+  ]
+}
