@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe ForecastService do
-  let(:service) { described_class.new }
+  let(:service) { ForecastService.new('US') }
   let(:lat) { 43.8986416 }
   let(:lon) { -79.4509662 }
   let(:cache_key) { "forecast_#{lat}_#{lon}" }

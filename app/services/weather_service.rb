@@ -8,19 +8,22 @@ class WeatherService
   CACHE_EXPIRATION = 30.minutes.freeze
   ZIP_PATTERN = /^\d{5}$/.freeze
 
-  def initialize(geocode_service: GeocodeService.new, forecast_service: ForecastService.new)
+  def initialize(geocode_service: GeocodeService.new, forecast_service: nil)
     @geocode_service = geocode_service
     @forecast_service = forecast_service
   end
 
   def fetch_weather(address_or_zip)
     location_info = fetch_location_info(address_or_zip)
+    country_code = location_info[:country_code]
+    @forecast_service ||= ForecastService.new(country_code)
     weather_data = fetch_weather_data(location_info)
 
     {
       is_from_cache: weather_data[:is_from_cache],
       forecast_data: weather_data[:data],
-      zip: location_info[:zip]
+      zip: location_info[:zip],
+      country_code: country_code
     }
   end
 

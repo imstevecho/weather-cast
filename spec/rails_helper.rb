@@ -5,6 +5,8 @@ require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require 'rspec/rails'
+require 'webmock/rspec'
+
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -61,4 +63,26 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
+
+  config.before(:each) do
+    WebMock.disable_net_connect!(allow_localhost: true)
+  end
+end
+
+require 'vcr'
+require 'webmock/rspec'
+
+# Add this configuration block
+VCR.configure do |config|
+  config.cassette_library_dir = "spec/vcr_cassettes"
+  config.hook_into :webmock
+  config.configure_rspec_metadata!
+  config.allow_http_connections_when_no_cassette = false
+  config.default_cassette_options = {
+    record: :new_episodes,
+    match_requests_on: [:method, :host, :path]
+  }
+  # If you're using any API keys, you should filter them out here
+  config.filter_sensitive_data('<GOOGLE_API_KEY>') { ENV['GOOGLE_API_KEY'] }
+  config.filter_sensitive_data('<OPENWEATHER_API_KEY>') { ENV['OPENWEATHER_API_KEY'] }
 end

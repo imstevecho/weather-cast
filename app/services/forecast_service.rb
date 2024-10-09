@@ -4,20 +4,21 @@ class ForecastService
   class ForecastError < StandardError; end
 
   BASE_URL = 'https://api.openweathermap.org/data/2.5'.freeze
+  MAX_RETRIES = 3
 
-  def initialize
+  def initialize(country_code = 'US')
+    @api_key = ENV['OPENWEATHER_API_KEY']
     @options = {
       id: ENV.fetch('OPENWEATHER_API_ID', nil),
-      appid: ENV.fetch('OPENWEATHER_API_KEY'),
-      units: ENV.fetch('OPENWEATHER_UNITS', 'metric')
+      appid: @api_key,
+      units: country_code == 'CA' ? 'metric' : 'imperial'
     }
   end
 
   # Fetch weather forecast data based on latitude and longitude
   def with_lat_lon(lat, lon)
     Rails.logger.info "Fetching forecast for #{lat}, #{lon}"
-    parsed_response = fetch('/forecast', { lat: lat, lon: lon })
-    parse_forecast(parsed_response['list'])
+    with_retries { fetch_and_parse_forecast(lat, lon) }
   rescue StandardError => e
     handle_error("Failed to fetch forecast: #{e.message}")
   end
@@ -25,6 +26,11 @@ class ForecastService
   private
 
   # Fetch API response and parse it
+  def fetch_and_parse_forecast(lat, lon)
+    parsed_response = fetch('/forecast', { lat: lat, lon: lon })
+    parse_forecast(parsed_response['list'])
+  end
+
   def fetch(path, query = {})
     full_query = query.merge(@options)
     url = "#{BASE_URL}#{path}"
@@ -51,8 +57,31 @@ class ForecastService
     end
   end
 
+  def with_retries
+    retries = 0
+    begin
+      yield
+    rescue StandardError => e
+      retries += 1
+      if retries <= MAX_RETRIES
+        sleep(2**retries) # Exponential backoff
+        retry
+      else
+        raise e
+      end
+    end
+  end
+
   def handle_error(message)
     Rails.logger.error(message)
     raise ForecastError, message
+  end
+
+  def convert_temp(temp_f)
+    if @country_code == 'CA'
+      ((temp_f - 32) * 5 / 9).round(2)
+    else
+      temp_f.round(2)
+    end
   end
 end

@@ -2,23 +2,15 @@ require 'rails_helper'
 
 RSpec.describe "Weather Forecasts", type: :request do
   describe "GET /index" do
-    let(:weather_service) { instance_double("WeatherService") }
-
-    before do
-      allow(WeatherService).to receive(:new).and_return(weather_service)
-    end
-
     context "when a valid query is provided" do
-      before do
-        allow(weather_service).to receive(:fetch_weather).and_return(forecast_data: [{date: Time.zone.now, temp: '70', temp_max: '75', temp_min: '65'}], is_from_cache: false, zip: '12345')
-      end
-
       it "displays weather forecast" do
-        get weathers_index_path, params: { q: 'valid_query' }
-        expect(response).to have_http_status(:success)
-        expect(response.body).to include('Here is the 3-hour forecast')
+        VCR.use_cassette("valid_weather_query", record: :new_episodes) do
+          get weathers_path, params: { q: "90210" }  # Using Beverly Hills ZIP code as a known valid input
+          expect(response).to have_http_status(:success)
+          expect(response.body).to include('Here is the 3-hour forecast')
+          expect(response.body).to include('90210')  # Check for the ZIP code in the response
+        end
       end
     end
-
   end
 end
