@@ -3,9 +3,7 @@ class WeathersController < ApplicationController
 
   def index
     @query = params[:q]
-    return if @query.blank?
-
-    fetch_and_handle_weather
+    fetch_and_handle_weather if @query.present?
   end
 
   private
@@ -20,36 +18,38 @@ class WeathersController < ApplicationController
   def fetch_and_handle_weather
     result = @weather_service.fetch_weather(@query)
     set_weather_data(result)
-  rescue WeatherService::LocationNotFoundError => e
-    handle_location_not_found(e)
-  rescue WeatherService::ForecastUnavailableError => e
-    handle_forecast_unavailable(e)
-  rescue StandardError => e
-    handle_unexpected_error(e)
+  rescue WeatherService::LocationNotFoundError,
+         WeatherService::ForecastUnavailableError,
+         StandardError => e
+    handle_error(e)
   end
 
   def set_weather_data(result)
     @forecast_data = result[:forecast_data]
     @is_from_cache = result[:is_from_cache]
     @zip = result[:zip]
+    @country_code = result[:country_code]
   end
 
-  def handle_location_not_found(error)
+  def handle_error(error)
     log_error(error)
-    flash.now[:alert] = "We couldn't find that location. Please check your input and try again."
-    render :index
+    flash.now[:alert] = error_message_for(error)
+    render :index, status: error_status_for(error)
   end
 
-  def handle_forecast_unavailable(error)
-    log_error(error)
-    flash.now[:alert] = "We're sorry, but we can't retrieve the weather information at the moment. Our forecast service might be temporarily unavailable. Please try again later."
-    render :index
+  def error_message_for(error)
+    case error
+    when WeatherService::LocationNotFoundError
+      "We couldn't find that location. Please check your input and try again."
+    when WeatherService::ForecastUnavailableError
+      "We're sorry, but we can't retrieve the weather information at the moment. Our forecast service might be temporarily unavailable. Please try again later."
+    else
+      "An unexpected error occurred. Our team has been notified."
+    end
   end
 
-  def handle_unexpected_error(error)
-    log_error(error)
-    flash.now[:error] = "An unexpected error occurred. Our team has been notified."
-    render :index, status: :internal_server_error
+  def error_status_for(error)
+    error.is_a?(StandardError) ? :internal_server_error : :unprocessable_entity
   end
 
   def log_error(error)

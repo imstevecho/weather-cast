@@ -14,7 +14,7 @@ RSpec.describe "Weather Forecasts", type: :request do
       end
 
       it "displays weather forecast" do
-        get weathers_index_path, params: { q: 'valid_query' }
+        get weathers_path, params: { q: 'valid_query' }
         expect(response).to have_http_status(:success)
         expect(response.body).to include('Here is the 3-hour forecast')
       end

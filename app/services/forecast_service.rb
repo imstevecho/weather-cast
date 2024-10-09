@@ -5,11 +5,11 @@ class ForecastService
 
   BASE_URL = 'https://api.openweathermap.org/data/2.5'.freeze
 
-  def initialize
+  def initialize(country_code = 'US')
     @options = {
       id: ENV.fetch('OPENWEATHER_API_ID', nil),
       appid: ENV.fetch('OPENWEATHER_API_KEY'),
-      units: ENV.fetch('OPENWEATHER_UNITS', 'metric')
+      units: country_code == 'CA' ? 'metric' : 'imperial'
     }
   end
 

@@ -50,16 +50,29 @@ class GeocodeService
     result = parsed_response['results'].first
     raise GeocodingError, 'No results found' if result.nil?
 
+    address_components = result['address_components']
+    country_code = find_country_code(address_components)
+
+    Rails.logger.debug "Address components: #{address_components.inspect}"
+    Rails.logger.debug "Country code: #{country_code}"
+
     {
       lat: result.dig('geometry', 'location', 'lat'),
       lon: result.dig('geometry', 'location', 'lng'),
-      zip: find_zip_code(result['address_components'])
+      zip: find_zip_code(address_components),
+      country_code: country_code
     }
   end
 
   def find_zip_code(address_components)
     zip_component = address_components.find { |comp| comp['types'].include?('postal_code') }
     zip_component&.dig('short_name')
+  end
+
+  def find_country_code(address_components)
+    country_component = address_components.find { |comp| comp['types'].include?('country') }
+    Rails.logger.debug "Country component: #{country_component.inspect}"
+    country_component&.dig('short_name')
   end
 
   def handle_error(message)

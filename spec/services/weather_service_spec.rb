@@ -9,7 +9,7 @@ RSpec.describe WeatherService do
 
   before do
     allow(geocode_service).to receive(:coords_by_zipcode).and_return({data: { lat: 40.7128, lon: -74.0060, zip: '10007'}, is_from_cache: false })
-    allow(geocode_service).to receive(:coords_by_address).and_return({data: { lat: 40.7128, lon: -74.0060, zip: '10007'}, is_from_cache: false })
+    allow(geocode_service).to receive(:coords_by_address).and_return({data: { lat: 40.7128, lon: -74.0060, zip: '12345', country_code: 'US' }, is_from_cache: false })
     allow(forecast_service).to receive(:with_lat_lon).and_return(fake_forecast_data)
   end
 
