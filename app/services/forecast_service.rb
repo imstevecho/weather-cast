@@ -76,4 +76,12 @@ class ForecastService
     Rails.logger.error(message)
     raise ForecastError, message
   end
+
+  def convert_temp(temp_f)
+    if @country_code == 'CA'
+      ((temp_f - 32) * 5 / 9).round(2)
+    else
+      temp_f.round(2)
+    end
+  end
 end

@@ -6,10 +6,12 @@ class WeathersController < ApplicationController
         location_info = geocode_service.coords_by_zipcode(params[:q])
 
         if location_info[:data]
-          forecast_service = ForecastService.new(location_info[:data][:country_code])
+          country_code = location_info[:data][:country_code]
+          forecast_service = ForecastService.new(country_code)
           @forecast_data = forecast_service.with_lat_lon(location_info[:data][:lat], location_info[:data][:lon])
           @zip = location_info[:data][:zip]
           @is_from_cache = location_info[:is_from_cache]
+          @temp_unit = country_code == 'CA' ? '°C' : '°F'
         else
           flash[:error] = "Unable to find location information"
         end
