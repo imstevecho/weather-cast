@@ -2,28 +2,26 @@
 
 class GeocodeService
   class GeocodingError < StandardError; end
-
   include CacheKeyGenerator
 
   BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
-  CACHE_EXPIRATION = 1.month
+  CACHE_EXPIRATION = 1.minute
 
   def coords_by_address(address, skip_cache: false)
     fetch_geo_info('address', address, skip_cache: skip_cache)
   end
 
-  def coords_by_zipcode(zipcode, country_code = 'US', skip_cache: false)
-    query = "#{zipcode},#{country_code}"
-    fetch_geo_info('zipcode', zipcode, query, skip_cache: skip_cache)
+  def coords_by_zipcode(zipcode, skip_cache: false)
+    fetch_geo_info('zipcode', zipcode, skip_cache: skip_cache)
   end
 
   private
 
-  def fetch_geo_info(prefix, zipcpde, query, skip_cache: false)
-    key = cache_key(prefix, zipcpde)
+  def fetch_geo_info(prefix, location, skip_cache: false)
+    key = cache_key(prefix, location)
     CachingService.fetch(key, expires_in: CACHE_EXPIRATION, skip_cache: skip_cache) do
-      Rails.logger.info "Fetching geocode for #{query}"
-      parsed_response = fetch_from_api(query)
+      Rails.logger.info "Fetching geocode for #{location}"
+      parsed_response = fetch_from_api(location)
       extract_location_info(parsed_response)
     end
   rescue StandardError => e

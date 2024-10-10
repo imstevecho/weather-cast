@@ -31,7 +31,7 @@ class WeatherService
 
   def fetch_location_info(address_or_zip)
     result = if looks_like_zip?(address_or_zip)
-               @geocode_service.coords_by_zipcode(address_or_zip, 'US')
+               @geocode_service.coords_by_zipcode(address_or_zip)
              else
                @geocode_service.coords_by_address(address_or_zip)
              end
