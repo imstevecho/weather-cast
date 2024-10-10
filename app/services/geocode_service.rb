@@ -3,9 +3,11 @@
 class GeocodeService
   class GeocodingError < StandardError; end
   include CacheKeyGenerator
+  include Retryable
 
   BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
   CACHE_EXPIRATION = 1.minute
+  MAX_RETRIES = 3
 
   def coords_by_address(address, skip_cache: false)
     fetch_geo_info('address', address, skip_cache: skip_cache)
@@ -20,12 +22,24 @@ class GeocodeService
   def fetch_geo_info(prefix, location, skip_cache: false)
     key = cache_key(prefix, location)
     CachingService.fetch(key, expires_in: CACHE_EXPIRATION, skip_cache: skip_cache) do
-      Rails.logger.info "Fetching geocode for #{location}"
-      parsed_response = fetch_from_api(location)
-      extract_location_info(parsed_response)
+      with_retries(max_retries: MAX_RETRIES) do
+        geocode(location)
+      end
     end
   rescue StandardError => e
     handle_error("Error in fetch_geo_info: #{e.message}")
+  end
+
+  def geocode(query)
+    Rails.logger.info "GeocodeService: Geocoding #{query}"
+    with_retries(max_retries: MAX_RETRIES) do
+      parsed_response = fetch_from_api(query)
+      result = extract_location_info(parsed_response)
+      Rails.logger.info "GeocodeService: Geocoding result for #{query}: #{result.inspect}"
+      return result
+    end
+  rescue StandardError => e
+    handle_error("Geocoding failed: #{e.message}")
   end
 
   def fetch_from_api(address)
@@ -33,8 +47,6 @@ class GeocodeService
     raise GeocodingError, 'API request failed' unless response.success?
 
     JSON.parse(response.body)
-  rescue HTTParty::Error, JSON::ParserError => e
-    handle_error("API request or parsing failed: #{e.message}")
   end
 
   def api_query(address)
